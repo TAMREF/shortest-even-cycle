@@ -76,12 +76,12 @@ def bowties(n: int) -> np.ndarray:
 
     ties = split_by_odds(n)
     
-    print(ver)
-    print(ties)
+    # print(ver)
+    # print(ties)
     cur = 0
     for tie in ties:
         l1 = sample_odd(3, tie - 2)
-        print(l1, tie - l1)
+        # print(l1, tie - l1)
         anchor = cur + l1 - 1
         for j in range(anchor, cur, -1):
             adj[ver[j], ver[j-1]] = 1
@@ -98,7 +98,7 @@ def bowties(n: int) -> np.ndarray:
 def even_hamiltonian(n: int):
     ver = list(range(n))
     rnd.shuffle(ver)
-    adj = np.zeros((n, n))
+    adj = np.zeros((n, n)).astype(np.int64)
     for i in range(n):
         adj[ver[i], ver[(i+1)%n]] = 1
     return adj

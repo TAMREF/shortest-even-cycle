@@ -2,8 +2,9 @@ from textwrap import fill
 import numpy as np
 from typing import List
 from random import randint
+from bjorklund import SELCSolver
 
-from generator import bowties, even_hamiltonian, no_four_cycles
+from generator import bowties, even_hamiltonian, no_four_cycles, no_two_cycles
 
 
 def is_even_cycle(adj: np.ndarray, path: List[int]):
@@ -70,10 +71,20 @@ def shortest_even_cycle(adj: np.ndarray) -> List[int]:
     return path
 
 if __name__ == '__main__':
-    n = 14
-    adj = even_hamiltonian(n)      
-    
-    print(adj)
-    path = shortest_even_cycle(adj)
+    maxn = 12
+    TC = [
+        even_hamiltonian(12),
+        bowties(12),
+        bowties(10),
+        no_four_cycles(12),
+        no_four_cycles(10),
+        no_two_cycles(12),
+        no_two_cycles(6)
+    ]
 
-    print(path)
+    solver = SELCSolver(maxn, iter=1)
+
+    for adj in TC:
+        path = shortest_even_cycle(adj)
+        print(f"naive: {len(path)}")
+        print(f"bjor: {solver.get_selc_length(adj)}")
