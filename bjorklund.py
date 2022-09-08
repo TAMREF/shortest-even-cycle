@@ -26,13 +26,11 @@ class SELCSolver:
         (self.x,) = self.F._first_ngens(1)
 
         self.Fx = self.F['t']
+        (self.t,) = self.Fx._first_ngens(1)
 
         # extension ring
         self.E = PolynomialRing(Integers(Integer(4)), 'x').quotient(self.F.modulus(), names=('y',))
         (self.y,) = self.E._first_ngens(1)
-        print(f"Ext degree: {self.E.degree()}")
-        self.Ex = self.E['t']
-        (self.tE,) = self.Ex._first_ngens(1)
 
     def source_distinct_elements_from_field(self, n: int) -> List:
         S = list(set([self.F.random_element() for _ in range(2 * n)]))
@@ -63,13 +61,19 @@ class SELCSolver:
         return self.E(1 / fs) * dst
 
     def permanent_with_similar_rows(self, mat, i1, i2):
-        M = Matrix(self.Ex, mat)
-        n = M.nrows()
+
+        def projection(e):
+            return self.F(list(map( lambda x: x % 2, e.list() )))
+
+        n = mat.nrows()
+        M = Matrix(self.Fx,
+        [[ projection(mat[i, j]) for j in range(n) ] for i in range(n)]
+        )
         for j in range(n):
-            M[i1, j] *= self.tE ** Integer(j)
-            M[i2, j] *= self.tE ** Integer(n-1-j)
+            M[i1, j] *= self.t ** Integer(j)
+            M[i2, j] *= self.t ** Integer(n-1-j)
         
-        return sum(M.det().list()[:n-1]) * 2
+        return self.E(sum(M.det().list()[:n-1])) * 2
 
 
     def perm_bjorklund(self, mat):
