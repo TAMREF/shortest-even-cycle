@@ -1,7 +1,8 @@
 # Shortest even cycle
 
 Implementation of the paper [Shortest Even Cycle Problem is Tractible](https://arxiv.org/pdf/2111.02992.pdf) by A. Björklund et al.
-The implementation is highly inefficient. Any type of contribution is welcomed.
+
+This implementation is **highly inefficient**. Any kind of contribution is welcomed.
 
 ## Dependencies
 - Python 3.9
