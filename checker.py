@@ -73,9 +73,9 @@ def shortest_even_cycle(adj: np.ndarray) -> List[int]:
 if __name__ == '__main__':
     maxn = 12
     TC = [
-        even_hamiltonian(12),
         bowties(12),
         bowties(10),
+        even_hamiltonian(12),
         no_four_cycles(12),
         no_four_cycles(10),
         no_two_cycles(12),

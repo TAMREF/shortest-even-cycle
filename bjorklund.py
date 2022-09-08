@@ -69,7 +69,7 @@ class SELCSolver:
             M[i1, j] *= self.tE ** Integer(j)
             M[i2, j] *= self.tE ** Integer(n-1-j)
         
-        return sum(M.det().list()[:n-2]) * 2
+        return sum(M.det().list()[:n-1]) * 2
 
 
     def perm_bjorklund(self, mat):
@@ -138,7 +138,10 @@ class SELCSolver:
 
             perm = self.perm_bjorklund(mat)
             pcc_double = perm - self.det_sage(mat)
-            print(self.perm_sage(mat) == perm)
+
+            psage = self.perm_sage(mat)
+            assert perm == psage, f"Poly: {perm}, Sage: {psage}"
+            # print(self.perm_sage(mat) == perm)
             # print(self.det_sage(mat))
             
             pcc_coeffs = pcc_double.list()
