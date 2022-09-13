@@ -22,7 +22,7 @@ class SELCSolver:
 
         # finite field
         self.F = GF(Integer(2 ** self.deg), names=('x',))
-        print(f"Field degree: {self.F.degree()}")
+        # print(f"Field degree: {self.F.degree()}")
         (self.x,) = self.F._first_ngens(1)
 
         self.Fx = self.F['t']
@@ -36,6 +36,53 @@ class SELCSolver:
         S = list(set([self.F.random_element() for _ in range(2 * n)]))
         assert len(S) >= n, f"failed to source distinct {n} elements from GF(2^{self.deg})"
         return S[:n]
+
+    '''
+    returns an instance of the shortest even cycle, or [] if it does not exist
+    '''
+    def get_selc(self, a_: np.ndarray) -> List[int]:
+        a = a_.copy().astype(np.int32)
+        n = a.shape[0]
+        selc = self.get_selc_length(a)
+        # print(f"selc length: {selc}")
+
+        if selc == -1:
+            return []
+        
+        ver = list(range(n))
+
+        for i in range(n-1, -1, -1):
+            if len(ver) == selc:
+                break
+
+            b = np.delete(np.delete(a, i, axis=1), i, axis=0)
+            if self.get_selc_length(b) == selc:
+                ver.remove(i)
+                a = b
+
+        cycle = []
+        now = 0
+        while len(cycle) < len(ver) - 1:
+            (out,) = np.nonzero(a[now])
+            s, e = 0, len(out) - 1
+            
+            while s < e:
+                m = (s + e) >> 1
+                filt = np.zeros(len(ver)).astype(np.int32)
+                filt[out[s] : out[m] + 1] = 1
+                a[now] *= filt
+
+                if self.get_selc_length(a) == selc:
+                    e = m
+                else:
+                    s = m + 1
+            
+            cycle.append(ver[now])
+            now = out[s]
+
+        cycle.append(ver[now])
+        return cycle
+            
 
     '''
     returns length of the shortest even cycle if exists, otherwise -1.
@@ -54,11 +101,34 @@ class SELCSolver:
         
         return -1 if ans > n else ans
 
-    def get_odd_elim_multiplier(self, src, dst):
-        print(src, dst, src.list())
-        fs = self.F(src.list())
-        assert fs != 0, "src must be odd"
-        return self.E(1 / fs) * dst
+    # def get_odd_elim_multiplier(self, src, dst):
+    #     print(src, dst, src.list())
+    #     fs = self.F(src.list())
+    #     assert fs != 0, "src must be odd"
+    #     return self.E(1 / fs) * dst
+
+    def permanent_with_similar_rows_lagrange(self, mat, i1, i2):
+        def projection(e):
+            return self.F(list(map( lambda x: x % 2, e.list() )))
+
+        n = mat.nrows()
+        M = Matrix(self.F,
+        [[ projection(mat[i, j]) for j in range(n) ] for i in range(n)]
+        )
+
+        points = self.source_distinct_elements_from_field(2*n - 1)
+        
+        itp_witness = []
+        for x in points:
+            N = copy(M)
+            for j in range(n):
+                N[i1, j] *= x ** Integer(j)
+                N[i2, j] *= x ** Integer(n-1-j)
+            
+            itp_witness.append((x, N.det()))
+        
+        pol = self.Fx.lagrange_polynomial(itp_witness)
+        return self.E(sum(pol.list()[:n-1])) * 2
 
     def permanent_with_similar_rows(self, mat, i1, i2):
 
@@ -108,7 +178,16 @@ class SELCSolver:
                     N = copy(M)
                     N.rescale_row(i2, 0)
                     N.add_multiple_of_row(i2, i1, rho)
-                    tot_perm += self.permanent_with_similar_rows(N, i1, i2)
+
+                    # from time import perf_counter as pf
+                    # t = pf()
+                    # perm1 = self.permanent_with_similar_rows(N, i1, i2)
+                    # t2= pf()
+                    perm2 = self.permanent_with_similar_rows_lagrange(N, i1, i2)
+                    # t3 = pf()
+                    # assert perm1 == perm2, f"perm1 = {perm1}, perm2 = {perm2}"
+                    # print(f"naive: {t2 - t:.3f}, ho: {t3 - t2:.3f}")
+                    tot_perm += perm2
                     M.add_multiple_of_row(i2, i1, rho)
             
             M.swap_rows(i1, max_marked_row + 1)
@@ -118,6 +197,7 @@ class SELCSolver:
         
         if max_marked_row < n-2:
             return tot_perm
+        
         return tot_perm + product(M.diagonal())
 
 
@@ -143,10 +223,8 @@ class SELCSolver:
             perm = self.perm_bjorklund(mat)
             pcc_double = perm - self.det_sage(mat)
 
-            psage = self.perm_sage(mat)
-            assert perm == psage, f"Poly: {perm}, Sage: {psage}"
-            # print(self.perm_sage(mat) == perm)
-            # print(self.det_sage(mat))
+            # psage = self.perm_sage(mat)
+            # assert perm == psage, f"Poly: {perm}, Sage: {psage}"
             
             pcc_coeffs = pcc_double.list()
             for coeff in pcc_coeffs:

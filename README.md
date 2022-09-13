@@ -13,8 +13,9 @@ This implementation is **highly inefficient**. Any kind of contribution is welco
 - $O(n^3 \cdot 2^{n})$ exponential algorithm, finding the length and an instance of the shortest even cycle
 - (Probably) $\tilde{O}(n^7)$ implementation of Björklund et al, finding the length of the shortest even cycle
   - Due to suboptimal determinant oracle, which needs about $\tilde{O}(n^4)$ field operations
+- Finds an even cycle with the shortest length with $O(n \log n)$ shortest even-cycle length oracles
 
 ## TODOs
-- [ ] Providing an instance of the shortest even cycle
+- [v] Providing an instance of the shortest even cycle
 - [ ] Employ faster determinant oracle for polynomial matrix
 
