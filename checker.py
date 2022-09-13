@@ -76,38 +76,49 @@ def shortest_even_cycle(adj: np.ndarray) -> List[int]:
 
 if __name__ == '__main__':
     maxn = 13
-    TC = [
-        no_four_cycles(12),
-        bowties(12),
-        bowties(10),
-        even_hamiltonian(12),
-        no_four_cycles(10),
-        no_two_cycles(12),
-        no_two_cycles(6),
-        no_two_cycles(12)
-    ] + [no_two_cycles(12)] * 10 + [no_four_cycles(13)] * 10
+    TC = [no_four_cycles(12)] * 300 + [no_two_cycles(12)] * 50
+    # TC = [
+    #     no_four_cycles(12),
+    #     bowties(12),
+    #     bowties(10),
+    #     even_hamiltonian(12),
+    #     no_four_cycles(10),
+    #     no_two_cycles(12),
+    #     no_two_cycles(6),
+    #     no_two_cycles(12)
+    # ] + [no_two_cycles(12)] * 10 + [no_four_cycles(13)] * 10
 
     solver = SELCSolver(maxn, iter=1)
 
     from time import perf_counter as pf
     from tqdm import tqdm
 
-    pbar = tqdm(TC)
-    for adj in pbar:
-        t = pf()
-        path = shortest_even_cycle(adj)
-        t2= pf()
-        # print(f"naive took {pf() - t:.3f} sec")
-        path2 = solver.get_selc(adj)
-        t3 = pf()
-        # print(f"bjork took {pf() - t:.3f} sec")
+    # pbar = tqdm(TC)
+    # for adj in pbar:
+    #     t = pf()
+    #     path = shortest_even_cycle(adj)
+    #     if len(path) == 0:
+    #         continue
+    #     t2= pf()
+    #     # print(f"naive took {pf() - t:.3f} sec")
+    #     path2 = solver.get_selc(adj)
+    #     t3 = pf()
+    #     # print(f"bjork took {pf() - t:.3f} sec")
 
-        if len(path2) == 0:
-            assert len(path) == 0
-        else:
-            # print(path, path2)
-            assert len(path) == len(path2)
-            assert is_even_cycle(adj, path2)
+    #     if len(path2) == 0:
+    #         assert len(path) == 0
+    #     else:
+    #         # print(path, path2)
+    #         assert len(path) == len(path2)
+    #         assert is_even_cycle(adj, path2), path2
                 
-        pbar.set_description(f"naive {t2 - t:.3f}, bjork {t3 - t2:.3f}, len {len(path)}")
+    #     pbar.set_description(f"naive {t2 - t:.3f}, bjork {t3 - t2:.3f}, len {len(path)}, call count {solver.perm_call_count}")
         # print(f"bjor: {path2}")
+
+    solver2 = SELCSolver(maxn=30, iter=1)
+    TC2 = [no_two_cycles(30)]
+
+    for adj in TC2:
+        path = solver2.get_selc(adj)
+        assert is_even_cycle(adj, path), path
+        print(solver2.perm_call_count, path)

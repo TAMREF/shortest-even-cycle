@@ -32,6 +32,8 @@ class SELCSolver:
         self.E = PolynomialRing(Integers(Integer(4)), 'x').quotient(self.F.modulus(), names=('y',))
         (self.y,) = self.E._first_ngens(1)
 
+        self.perm_call_count = 0
+
     def source_distinct_elements_from_field(self, n: int) -> List:
         S = list(set([self.F.random_element() for _ in range(2 * n)]))
         assert len(S) >= n, f"failed to source distinct {n} elements from GF(2^{self.deg})"
@@ -41,6 +43,7 @@ class SELCSolver:
     returns an instance of the shortest even cycle, or [] if it does not exist
     '''
     def get_selc(self, a_: np.ndarray) -> List[int]:
+        self.perm_call_count = 0
         a = a_.copy().astype(np.int32)
         n = a.shape[0]
         selc = self.get_selc_length(a)
@@ -108,6 +111,7 @@ class SELCSolver:
     #     return self.E(1 / fs) * dst
 
     def permanent_with_similar_rows_lagrange(self, mat, i1, i2):
+        self.perm_call_count += 1
         def projection(e):
             return self.F(list(map( lambda x: x % 2, e.list() )))
 
